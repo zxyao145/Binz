@@ -1,0 +1,65 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Binz.Core", "src\Binz.Core\Binz.Core.csproj", "{542854D2-9838-4800-9A34-BED6C6EA3ABD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Binz.Client", "src\Binz.Client\Binz.Client.csproj", "{A46C5968-E16C-464A-A5EE-3D2AD47E1D12}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Binz.Server", "src\Binz.Server\Binz.Server.csproj", "{1D5FF6E4-CD45-49BB-B989-9B3349FC0F9B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{601AFBC3-8D87-4E34-8AB8-4CF8E05257E6}"
+	ProjectSection(SolutionItems) = preProject
+		src\assembly.proj = src\assembly.proj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{621AF091-0995-472C-A8DF-8B27CF4B71BD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{1669AB82-BAD5-4F26-96DC-14A6DDFD910C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcServiceServer", "sample\GrpcServiceServer\GrpcServiceServer.csproj", "{09CB6F86-1103-4215-8FF6-BCD42CC5E7BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcServiceClient", "sample\GrpcServiceClient\GrpcServiceClient.csproj", "{B532E78F-C280-4F96-8F37-0D1F7F26B2E4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{542854D2-9838-4800-9A34-BED6C6EA3ABD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{542854D2-9838-4800-9A34-BED6C6EA3ABD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{542854D2-9838-4800-9A34-BED6C6EA3ABD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{542854D2-9838-4800-9A34-BED6C6EA3ABD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A46C5968-E16C-464A-A5EE-3D2AD47E1D12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A46C5968-E16C-464A-A5EE-3D2AD47E1D12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A46C5968-E16C-464A-A5EE-3D2AD47E1D12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A46C5968-E16C-464A-A5EE-3D2AD47E1D12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D5FF6E4-CD45-49BB-B989-9B3349FC0F9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D5FF6E4-CD45-49BB-B989-9B3349FC0F9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D5FF6E4-CD45-49BB-B989-9B3349FC0F9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D5FF6E4-CD45-49BB-B989-9B3349FC0F9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09CB6F86-1103-4215-8FF6-BCD42CC5E7BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09CB6F86-1103-4215-8FF6-BCD42CC5E7BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09CB6F86-1103-4215-8FF6-BCD42CC5E7BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09CB6F86-1103-4215-8FF6-BCD42CC5E7BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B532E78F-C280-4F96-8F37-0D1F7F26B2E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B532E78F-C280-4F96-8F37-0D1F7F26B2E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B532E78F-C280-4F96-8F37-0D1F7F26B2E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B532E78F-C280-4F96-8F37-0D1F7F26B2E4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{542854D2-9838-4800-9A34-BED6C6EA3ABD} = {621AF091-0995-472C-A8DF-8B27CF4B71BD}
+		{A46C5968-E16C-464A-A5EE-3D2AD47E1D12} = {621AF091-0995-472C-A8DF-8B27CF4B71BD}
+		{1D5FF6E4-CD45-49BB-B989-9B3349FC0F9B} = {621AF091-0995-472C-A8DF-8B27CF4B71BD}
+		{09CB6F86-1103-4215-8FF6-BCD42CC5E7BA} = {1669AB82-BAD5-4F26-96DC-14A6DDFD910C}
+		{B532E78F-C280-4F96-8F37-0D1F7F26B2E4} = {1669AB82-BAD5-4F26-96DC-14A6DDFD910C}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {562D37BA-4F87-4B42-BBB0-4B1D4BB201B1}
+	EndGlobalSection
+EndGlobal

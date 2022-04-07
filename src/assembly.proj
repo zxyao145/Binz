@@ -1,0 +1,19 @@
+<Project>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<AssemblyVersion>0.1.0.0</AssemblyVersion>
+		<ProductVersion>0.1.0.0</ProductVersion>
+		<FileVersion>0.1.0.0</FileVersion>
+		<Version>0.1.0</Version>
+		<Copyright>zxyao</Copyright>
+		<Authors>zxyao</Authors>
+		<RepositoryType>git</RepositoryType>
+
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PageReference Include="Consul" Version="1.6.10.4" />
+	</ItemGroup>
+</Project>

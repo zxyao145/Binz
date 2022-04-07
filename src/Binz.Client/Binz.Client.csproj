@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\assembly.proj" />
+
+	<PropertyGroup>
+		<PackageId>Binz.Client</PackageId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Binz.Core\Binz.Core.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Grpc.Net.Client" Version="2.44.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
+	</ItemGroup>
+</Project>
