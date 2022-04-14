@@ -9,10 +9,6 @@ namespace Binz.Server
 {
     public class BinzConfig
     {
-        public int Port { get; set; } = 9527;
-
-        public int Level { get; set; } = 10;
-
-        public BinzConsulConfig ConsulConfig { get; set; } = new BinzConsulConfig();
+        public RegistryConfig RegistryConfig { get; set; } = new RegistryConfig();
     }
 }

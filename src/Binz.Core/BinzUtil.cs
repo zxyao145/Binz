@@ -59,9 +59,13 @@ namespace Binz.Core
         public static string GetEnvTag()
         {
             var envName = GetEnvName();
-            return $"env:{envName}";
+            return GetEnvTag(envName);
         }
 
+        public static string GetEnvTag(string envName)
+        {
+            return $"EnvName:{envName}";
+        }
 
         /// <summary>
         /// 获取当前环境名
@@ -81,6 +85,25 @@ namespace Binz.Core
             }
 
             return env;
+        }
+
+
+        /// <summary>
+        /// 获取当前 容器 or 机器 名
+        /// </summary>
+        /// <returns></returns>
+        public static string GetContainerName()
+        {
+            var containerName = Environment.GetEnvironmentVariable("containerName");
+            if (containerName == null)
+            {
+                containerName = Environment.MachineName;
+            }
+            if (containerName == null)
+            {
+                containerName = DateTime.Now.ToString("YYYYMMddHHmmss");
+            }
+            return containerName;
         }
     }
 }

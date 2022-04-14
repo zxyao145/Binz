@@ -20,6 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\src\Binz.Consul\Binz.Consul.csproj" />
 	  <ProjectReference Include="..\..\src\Binz.Server\Binz.Server.csproj" />
 	</ItemGroup>
 

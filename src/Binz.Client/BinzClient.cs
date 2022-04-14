@@ -14,65 +14,20 @@ namespace Binz.Client
 {
     public class BinzClient : IDisposable
     {
-        private readonly ConsulClient _consulClient;
         private readonly ILogger<BinzClient> _logger;
+        private readonly IRegistry _registry;
         private readonly ConcurrentDictionary<string, GrpcChannel?> _grpcChannelDict;
         private readonly ConcurrentDictionary<string, ServiceClientCacheItem> _serviceInfoCacheDict;
-        private readonly CancellationTokenSource _watchCancellationTokenSource;
 
-        public BinzClient(ILogger<BinzClient> logger, IConfiguration configuration)
+        public BinzClient(ILogger<BinzClient> logger, IConfiguration configuration, IRegistry registry)
         {
             _logger = logger;
-            var binzConsulConfig = new BinzConsulConfig();
-            var section = configuration.GetSection("Binz:ConsulConfig");
-            if (section != null)
-            {
-                section.Bind(binzConsulConfig);
-            }
-
-            var consulClient = new ConsulClient(x =>
-                      {
-                          x.Address = new Uri(binzConsulConfig.Address);
-                          x.Datacenter = string.Empty;
-                      });
-            _consulClient = consulClient;
+            this._registry = registry;
 
             _grpcChannelDict = new ConcurrentDictionary<string, GrpcChannel?>();
             _serviceInfoCacheDict = new ConcurrentDictionary<string, ServiceClientCacheItem>();
 
 
-            _watchCancellationTokenSource = new CancellationTokenSource();
-        }
-
-        /// <summary>
-        /// 第一次创建客户端的时候，获取server信息
-        /// </summary>
-        /// <param name="serviceName"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        private async Task<(List<ServiceInfo> ServiceInfos, ulong LastIndex)>
-            GetServicesAsync(string serviceName)
-        {
-            var envTag = BinzUtil.GetEnvTag();
-            var services = await _consulClient.Catalog.Service(serviceName, envTag);
-            if (services.Response.Length == 0)
-            {
-                throw new Exception($"未发现服务 {serviceName}");
-            }
-
-            foreach (var item in services.Response)
-            {
-                _logger.LogInformation("BinzClient get service for {0}: {1}, {2}, {3}"
-                    , serviceName, item.ServiceAddress, item.ServicePort, string.Join(";", item.ServiceTags));
-            }
-            var lastIndex = services.LastIndex;
-
-            var res = services.Response
-                .Where(e => e.ServiceTags.Contains(envTag))
-                .Select(e => new ServiceInfo(e.ServiceAddress, e.ServicePort))
-                .OrderBy(e => e.Address).ThenBy(e => e.Port)
-                .ToList();
-            return (res, lastIndex);
         }
 
         public async Task<GrpcChannel?> CreateGrpcChannelAsync<T>(bool warmUp = true, int connectTimeoutSecond = 5)
@@ -97,11 +52,15 @@ namespace Binz.Client
         private async Task<GrpcChannel> CreateGrpcChannelInternalAsync<T>(int connectTimeoutSecond = 5)
         {
             var serviceName = BinzUtil.GetClientServiceName<T>();
-            var (services, lastIndex) = await GetServicesAsync(serviceName);
+            var registerService = new RegisterInfo
+            {
+                ServiceName = serviceName,
+            };
+
+            var services = await _registry.GetServiceAsync(registerService);
             var serviceCacheInfo = new ServiceClientCacheItem(serviceName)
             {
                 ConnectTimeoutSecond = connectTimeoutSecond,
-                LastIndex = lastIndex
             };
 
             _serviceInfoCacheDict.AddOrUpdate(serviceName, serviceCacheInfo, (key, val) => serviceCacheInfo);
@@ -109,11 +68,10 @@ namespace Binz.Client
             return await CreateGrpcChannelInternalAsync(serviceName, services, connectTimeoutSecond);
         }
 
-
         private Task<GrpcChannel> CreateGrpcChannelInternalAsync(string serviceName, List<ServiceInfo> services, int connectTimeoutSecond = 5)
         {
             var balancerAddresses = services
-                    .Select(x => new BalancerAddress(x.Address, x.Port));
+                    .Select(x => new BalancerAddress(x.ServiceIp, x.ServicePort));
             var factory = new StaticResolverFactory(addr => balancerAddresses);
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton<ResolverFactory>(factory);
@@ -148,81 +106,43 @@ namespace Binz.Client
         /// </summary>
         /// <param name="serviceName"></param>
         /// <returns></returns>
-        private async Task WatchAsync(string serviceName)
+        private Task WatchAsync(string serviceName)
         {
-            var lastIndex = _serviceInfoCacheDict[serviceName].LastIndex;
-            var envTag = BinzUtil.GetEnvName();
-            while (true)
+            var registerService = new RegisterInfo
             {
-                if (_watchCancellationTokenSource.Token.IsCancellationRequested)
+                ServiceName = serviceName,
+            };
+            var task = _registry.Watch(registerService, (async (services) =>
+            {
+                if (services.Count == 0)
                 {
-                    break;
+                    _grpcChannelDict[serviceName] = null;
                 }
-                QueryResult<CatalogService[]> services = new QueryResult<CatalogService[]>();
-
-                try
+                else
                 {
-                    services = await _consulClient.Catalog.Service(serviceName, envTag, new QueryOptions
+                    var serviceCacheInfos = _serviceInfoCacheDict[serviceName];
+                    serviceCacheInfos.LastSyncTime = DateTime.Now;
+
+                    var grpcChannel = await CreateGrpcChannelInternalAsync(serviceName, services, serviceCacheInfos.ConnectTimeoutSecond);
+                    await grpcChannel.ConnectAsync();
+                    _grpcChannelDict.AddOrUpdate(serviceName, (GrpcChannel)grpcChannel, (key, value) =>
                     {
-                        WaitIndex = lastIndex,
-                    }, _watchCancellationTokenSource.Token);
+                        return grpcChannel;
+                    });
                 }
-                catch (TaskCanceledException)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("WatchAsync get service failed: {0}", ex);
-                    await Task.Delay(5000);
-                    continue;
-                }
-
-                _logger.LogInformation("sync service {0} from consul", serviceName);
-
-                if(services.LastIndex != lastIndex)
-                {
-                    lastIndex = services.LastIndex;
-
-                    if (services.Response.Length == 0)
-                    {
-                        _grpcChannelDict[serviceName] = null;
-                    }
-                    else
-                    {
-                        var serviceCacheInfos = _serviceInfoCacheDict[serviceName];
-                        serviceCacheInfos.LastSyncTime = DateTime.Now;
-                        serviceCacheInfos.LastIndex = lastIndex;
-
-                        var newServicesInfos = services.Response
-                            .Select(x =>
-                            {
-                                return new ServiceInfo(x.ServiceAddress, x.ServicePort);
-                            })
-                            .ToList();
-
-                        _logger.LogInformation("update service {0} servers: {1}", serviceName, JsonSerializer.Serialize(newServicesInfos));
-
-                        var grpcChannel = await CreateGrpcChannelInternalAsync(serviceName, newServicesInfos, serviceCacheInfos.ConnectTimeoutSecond);
-                        await grpcChannel.ConnectAsync();
-                        _grpcChannelDict.AddOrUpdate(serviceName, grpcChannel, (key, value) =>
-                        {
-                            return grpcChannel;
-                        });
-                    }
-                }
-            }
+            }));
+            task.ConfigureAwait(false);
+            return task;
         }
 
 
         public void Dispose()
         {
-            _watchCancellationTokenSource.Cancel();
-            foreach (var item in _grpcChannelDict.Values)
+            _registry?.Dispose();
+                foreach (var item in _grpcChannelDict.Values)
             {
                 item?.Dispose();
             }
-            _consulClient?.Dispose();
         }
     }
 }

@@ -13,8 +13,6 @@ namespace Binz.Client
             ServiceName = serviceName;
         }
 
-        public ulong LastIndex { get; set; }
-
         public string ServiceName { get; private set; } 
 
         public DateTime LastSyncTime { get; set; } = DateTime.Now;
