@@ -22,7 +22,7 @@ namespace Binz.Server
 
 
         /// <summary>
-        /// 获取 Assembly 内所有的 binz 服务
+        /// 获取 Assembly 内所有的 binz 服务名
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -49,6 +49,7 @@ namespace Binz.Server
                             name = BinzUtil.GetServerServiceName(item);
                         }
                         binzSvcs.Add(name);
+                        continue;
                     }
                 }
             }

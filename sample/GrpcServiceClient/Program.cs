@@ -12,29 +12,25 @@ IConfiguration configuration = builder.Build();
 
 
 var serviceCollection = new ServiceCollection();
-
-
-serviceCollection.Configure<RegistryConfig>(
-              configuration
-              .GetSection("Binz:RegistryConfig")
-          );
-serviceCollection.AddSingleton<IRegistry, ConsulRegistry>();
-serviceCollection.AddSingleton<BinzClient>();
-
-
 serviceCollection.AddLogging();
+serviceCollection.AddSingleton<IConfiguration>(_ => configuration);
 
 
-serviceCollection.AddScoped<IConfiguration>(_ => configuration);
+// here
+serviceCollection.AddBinzClient<ConsulRegistry>(configuration);
 
 
 var serviceProvider = serviceCollection.BuildServiceProvider();
 
 var binzClient = serviceProvider.GetRequiredService<BinzClient>();
 
-var channel = await binzClient.CreateGrpcChannelAsync<Greeter.GreeterClient>();
-var client = new Greeter.GreeterClient(channel);
-var res = client.SayHello(new HelloRequest { Name = "asas" });
+//var channel = await binzClient.CreateGrpcChannelAsync<Greeter.GreeterClient>();
+//var client = new Greeter.GreeterClient(channel);
+
+var client = await binzClient.CreateGrpcClient<Greeter.GreeterClient>();
+
+
+var res = client?.SayHello(new HelloRequest { Name = "asas" });
 Console.WriteLine(res?.Message);
 
 Console.WriteLine("Hello, World!");

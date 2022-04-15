@@ -13,7 +13,4 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<PageReference Include="Consul" Version="1.6.10.4" />
-	</ItemGroup>
 </Project>

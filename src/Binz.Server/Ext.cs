@@ -1,5 +1,4 @@
 ﻿using Binz.Core;
-using Consul;
 using Grpc.AspNetCore.Server;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -7,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Binz.Server
 {
-    public static class Extension
+    public static class Ext
     {
         public static IGrpcServerBuilder
             AddBinzServices<TRegistry>(this IGrpcServerBuilder grpcServerBuilder, IConfiguration configuration)

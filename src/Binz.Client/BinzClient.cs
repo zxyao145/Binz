@@ -1,5 +1,4 @@
 ﻿using Binz.Core;
-using Consul;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Balancer;
@@ -30,6 +29,15 @@ namespace Binz.Client
 
         }
 
+        public async Task<T?> CreateGrpcClient<T>(bool warmUp = true, int connectTimeoutSecond = 5)
+        {
+            var channel = await CreateGrpcChannelAsync<T>(warmUp, connectTimeoutSecond);
+
+            var client = (T?) Activator.CreateInstance(typeof(T), channel);
+            return client;
+        }
+
+
         public async Task<GrpcChannel?> CreateGrpcChannelAsync<T>(bool warmUp = true, int connectTimeoutSecond = 5)
         {
             var serviceName = BinzUtil.GetClientServiceName<T>();
@@ -48,6 +56,8 @@ namespace Binz.Client
             _grpcChannelDict[serviceName] = channel;
             return channel;
         }
+
+
 
         private async Task<GrpcChannel> CreateGrpcChannelInternalAsync<T>(int connectTimeoutSecond = 5)
         {
