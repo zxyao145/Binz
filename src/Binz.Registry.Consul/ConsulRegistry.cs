@@ -5,9 +5,9 @@ using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Text.Json;
 
-namespace Binz.Consul
+namespace Binz.Registry.Consul
 {
-    public class ConsulRegistry : IRegistry
+    public class ConsulRegistry : IRegistry, IAsyncDisposable
     {
         private readonly ConsulClient _consulClient;
         private readonly RegistryConfig _registryConfig;
@@ -15,7 +15,7 @@ namespace Binz.Consul
 
 
         private ConcurrentDictionary<string, ulong> _serviceModifyIndex = new ConcurrentDictionary<string, ulong>();
-        private ConcurrentBag<RegisterInfo> _allRegisterInfo = new ConcurrentBag<RegisterInfo>();
+        private ConcurrentBag<RegistryInfo> _allRegisterInfo = new ConcurrentBag<RegistryInfo>();
         private readonly CancellationTokenSource _watchCancellationTokenSource;
 
         public ConsulRegistry(IOptions<RegistryConfig> registryConfigOptions, ILogger<ConsulRegistry> logger)
@@ -23,7 +23,7 @@ namespace Binz.Consul
             _registryConfig = registryConfigOptions.Value;
             _consulClient = new ConsulClient(config =>
             {
-                config.Address = new Uri(_registryConfig.Address);
+                config.Address = new Uri(_registryConfig.Address ?? "http://localhost:8500");
             });
 
             _logger = logger;
@@ -50,45 +50,37 @@ namespace Binz.Consul
             return httpCheck;
         }
 
-        public async Task RegisterAsync(RegisterInfo registerInfo)
+        public async Task RegisterAsync(RegistryInfo registryInfo)
         {
-            AgentServiceCheck httpCheck = GetHealthCheck(registerInfo.ServiceIp, registerInfo.ServicePort);
+            AgentServiceCheck httpCheck = GetHealthCheck(registryInfo.ServiceIp, registryInfo.ServicePort);
 
-            if (string.IsNullOrWhiteSpace(registerInfo.ServiceId))
-            {
-                var pureServiceName = registerInfo.ServiceName.Split('.')[^1];
-                registerInfo.ServiceId =
-                    $"{pureServiceName}-{BinzUtil.GetContainerName()}-{Guid.NewGuid().ToString().Substring(0, 6)}";
-            }
-            var id = registerInfo.ServiceId;
-
+            var id = GetServiceId(registryInfo);
             // Register service with consul
             var registration = new AgentServiceRegistration()
             {
                 Checks = new[] { httpCheck },
                 ID = id,
-                Name = registerInfo.ServiceName,
-                Address = registerInfo.ServiceIp,
-                Port = registerInfo.ServicePort,
+                Name = registryInfo.ServiceName,
+                Address = registryInfo.ServiceIp,
+                Port = registryInfo.ServicePort,
 
                 //添加 urlprefix-/servicename 格式的 tag 标签，以便 Fabio 识别
                 Tags = new[] {
-                    $"EnvName:{registerInfo.EnvName}",
-                    $"Level:{registerInfo.Level}",
-                    $"Weight:{registerInfo.Weight}",
-                    $"urlprefix-/{registerInfo.ServiceName}"
+                    $"EnvName:{registryInfo.EnvName}",
+                    $"urlprefix-/{registryInfo.ServiceName}"
                 }
             };
 
             // 服务启动时注册，内部实现其实就是使用 Consul API 进行注册（HttpClient发起）
             await _consulClient.Agent.ServiceRegister(registration);
 
-            _allRegisterInfo.Add(registerInfo);
+            _allRegisterInfo.Add(registryInfo);
         }
 
-        public async Task UnRegisterAsync(RegisterInfo serviceInfo)
+        public async Task UnRegisterAsync(RegistryInfo registryInfo)
         {
-            await _consulClient.Agent.ServiceDeregister(serviceInfo.ServiceId).ConfigureAwait(false);
+            var id = GetServiceId(registryInfo);
+            await _consulClient.Agent.ServiceDeregister(id).ConfigureAwait(false);
         }
 
         public async Task UnRegisterAllAsync()
@@ -99,14 +91,15 @@ namespace Binz.Consul
             }
         }
 
-        public async Task<List<ServiceInfo>> GetServiceAsync(RegisterInfo serviceInfo)
+        public async Task<List<ServiceInfo>> GetServiceAsync(RegistryInfo registryInfo)
         {
-            var serviceName = serviceInfo.ServiceName;
-            var envTag = BinzUtil.GetEnvTag(serviceInfo.EnvName);
+            var serviceName = registryInfo.ServiceName;
+            var envTag = BinzUtil.GetEnvTag(registryInfo.EnvName);
             var services = await _consulClient.Catalog.Service(serviceName, envTag);
             if (services.Response.Length == 0)
             {
-                throw new Exception($"未发现服务 {serviceName}");
+                _logger.LogError("service register info cannot found:{0}", serviceName);
+                throw BinzException.ServiceCannotBrFound;
             }
 
             foreach (var item in services.Response)
@@ -126,7 +119,7 @@ namespace Binz.Consul
             return res;
         }
 
-        public async Task Watch(RegisterInfo serviceInfo, Func<List<ServiceInfo>, Task> OnServiceCahnged)
+        public async Task Watch(RegistryInfo serviceInfo, Func<List<ServiceInfo>, Task> OnServiceCahnged)
         {
             var serviceName = serviceInfo.ServiceName;
             var lastIndex = _serviceModifyIndex[serviceName];
@@ -177,12 +170,19 @@ namespace Binz.Consul
             }
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             _watchCancellationTokenSource?.Cancel();
+            await UnRegisterAllAsync();
             _consulClient?.Dispose();
         }
 
-       
+
+        private static string GetServiceId(RegistryInfo registryInfo)
+        {
+            var pureServiceName = registryInfo.ServiceName.Split('.')[^1];
+            var id = $"{pureServiceName}-{registryInfo.ServiceIp}:{registryInfo.ServicePort}";
+            return id;
+        }
     }
 }

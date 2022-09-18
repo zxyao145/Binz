@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
@@ -14,13 +14,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Grpc.AspNetCore" Version="2.40.0" />
-		<PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.44.0" />
-		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
+	  <Protobuf Remove="..\Protos\greet2.proto" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\src\Binz.Consul\Binz.Consul.csproj" />
+		<PackageReference Include="Grpc.AspNetCore" Version="2.48.0" />
+		<PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.48.0" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\src\Binz.Registry.Consul\Binz.Registry.Consul.csproj" />
+	  <ProjectReference Include="..\..\src\Binz.Registry.Etcd\Binz.Registry.Etcd.csproj" />
 	  <ProjectReference Include="..\..\src\Binz.Server\Binz.Server.csproj" />
 	</ItemGroup>
 

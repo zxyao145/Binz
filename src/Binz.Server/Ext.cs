@@ -43,25 +43,14 @@ namespace Binz.Server
         /// <param name="app"></param>
         /// <param name="scanAssembly"></param>
         /// <returns></returns>
-        public static async Task RegisterBinzServer(this WebApplication app, Type scanAssembly)
-        {
-            await RegisterBinzServer<RegisterInfo>(app, scanAssembly);
-        }
-
-        /// <summary>
-        /// 服务注册
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="scanAssembly"></param>
-        /// <returns></returns>
-        public static async Task RegisterBinzServer<T>(this WebApplication app, Type scanAssembly)  where T : RegisterInfo
+        public static async Task RegisterBinzServer(this WebApplication app, params Type[] scanAssemblys)
         {
             app.MapGrpcHealthChecksService();
 #if DEBUG
             app.MapGrpcReflectionService();
 #endif
             var server = app.Services.GetRequiredService<BinzServer>();
-            await server.InitAsync(app.Lifetime, scanAssembly);
+            await server.InitAsync(app.Lifetime, scanAssemblys);
         }
     }
 }

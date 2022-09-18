@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Security.AccessControl;
 
 namespace Binz.Core
 {
@@ -10,36 +11,26 @@ namespace Binz.Core
         {
             var addressList = Dns.GetHostAddresses(Dns.GetHostName());
             var ips = addressList
-                .Where(x => x.AddressFamily == AddressFamily.InterNetwork
-                    && !IPAddress.IsLoopback(x))
+                .Where(x =>
+                    x.AddressFamily == AddressFamily.InterNetwork
+                    && !IPAddress.IsLoopback(x)
+                )
                 .Select(x => x.ToString())
-                .OrderBy(e=>e)
-                .ToList();
-            return ips;
-        }
-
-        public static List<string> GetLocalIp2()
-        {
-            var addressList = NetworkInterface.GetAllNetworkInterfaces()
-                .Select(p => p.GetIPProperties())
-                .SelectMany(p => p.UnicastAddresses);
-            var ips = addressList
-                .Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork
-                        && !IPAddress.IsLoopback(x.Address))
-                .Select(p => p.Address.ToString())
+                .Where(x => 
+                    !x.EndsWith(".1") 
+                    && !x.EndsWith(".0") 
+                    && !x.EndsWith(".255")
+                )
                 .OrderBy(e => e)
                 .ToList();
+            Console.WriteLine("ips:" + String.Join(",", ips));
             return ips;
         }
-
 
         public static string GetClientServiceName<T>()
         {
             var type = typeof(T);
-            var nsName = type.Namespace;
-            //var className = baseType.Name;
-
-            var svcName = $"service/{nsName ?? "DefaultNs"}";
+            var svcName = $"service/{type.FullName?.Split("+")[0] ?? "DefaultNs"}";
             return svcName;
         }
 
@@ -50,9 +41,8 @@ namespace Binz.Core
             {
                 baseType = type;
             }
-            var nsName = baseType.Namespace;
             //var className = baseType.Name;
-            var svcName = $"service/{nsName ?? "DefaultNs"}";
+            var svcName = $"service/{baseType.FullName?.Split("+")[0] ?? "DefaultNs"}";
             return svcName;
         }
 
@@ -62,10 +52,14 @@ namespace Binz.Core
             return GetEnvTag(envName);
         }
 
+        public static readonly string EnvTagKey = "EnvName";
+
         public static string GetEnvTag(string envName)
         {
-            return $"EnvName:{envName}";
+            return $"{EnvTagKey}:{envName}";
         }
+
+        private static string? _curEnvName = null;
 
         /// <summary>
         /// 获取当前环境名
@@ -73,18 +67,21 @@ namespace Binz.Core
         /// <returns></returns>
         public static string GetEnvName()
         {
-            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            if (env == null)
+            if (_curEnvName == null)
             {
-                env = Environment.GetEnvironmentVariable("env");
+                var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                if (env == null)
+                {
+                    env = Environment.GetEnvironmentVariable("env");
+                }
+                if (env == null)
+                {
+                    env = EnvName.Development;
+                }
+                _curEnvName = env;
             }
 
-            if (env == null)
-            {
-                env = "Development";
-            }
-
-            return env;
+            return _curEnvName;
         }
 
 
@@ -94,10 +91,15 @@ namespace Binz.Core
         /// <returns></returns>
         public static string GetContainerName()
         {
-            var containerName = Environment.GetEnvironmentVariable("containerName");
+            var containerName = Environment.GetEnvironmentVariable("HOSTNAME");
             if (containerName == null)
             {
-                containerName = Environment.MachineName;
+                containerName = Environment.GetEnvironmentVariable("containerName");
+            }
+            if (containerName == null)
+            {
+                containerName = Dns.GetHostName();
+                //containerName = Environment.MachineName;
             }
             if (containerName == null)
             {

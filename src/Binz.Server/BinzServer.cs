@@ -1,6 +1,7 @@
 ﻿using Binz.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,13 @@ namespace Binz.Server
     {
         private readonly IRegistry _registry;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<BinzServer> _logger;
 
-        public BinzServer(IRegistry registry, IConfiguration configuration)
+        public BinzServer(IRegistry registry, IConfiguration configuration, ILogger<BinzServer> logger)
         {
             this._registry = registry;
             _configuration = configuration;
+            _logger = logger;
         }
 
 
@@ -58,7 +61,7 @@ namespace Binz.Server
         }
 
         public async Task InitAsync(IHostApplicationLifetime lifetime,
-            Type scanAssembly)
+            params Type[] scanAssemblys)
         {
             int port = _configuration
                             .GetSection("Binz:Server:Port")
@@ -67,14 +70,26 @@ namespace Binz.Server
                             BinzConstants.DefaultPort;
             var localIp = GetIp();
 
-            Console.WriteLine($"binzserver bind {localIp}:{port}");
+            _logger.LogInformation($"binzserver bind {localIp}:{port}");
 
             var env = BinzUtil.GetEnvName();
-            var binzSvcNames = ScanGrpcService(scanAssembly);
-            var serviceIds = new List<string>(binzSvcNames.Count);
+            var binzSvcNames = new List<string>();
+            HashSet<string> names = new HashSet<string>();
+            foreach (var scanAssembly in scanAssemblys)
+            {
+                var key = scanAssembly.FullName;
+                if (!string.IsNullOrWhiteSpace(key) && !names.Contains(key))
+                {
+                    names.Add(key);
+                    binzSvcNames.AddRange(
+                        ScanGrpcService(scanAssembly)
+                        );
+                }
+            }
+
             foreach (var svcName in binzSvcNames)
             {
-                var registerInfo = new RegisterInfo()
+                var registerInfo = new RegistryInfo()
                 {
                     ServiceName = svcName,
                     ServiceIp = localIp,
@@ -83,25 +98,24 @@ namespace Binz.Server
                 };
 
                 await _registry.RegisterAsync(registerInfo).ConfigureAwait(false);
+                _logger.LogInformation("regist service:{0}", registerInfo);
             }
 
-            lifetime.ApplicationStopping.Register(async () =>
-            {
-                await _registry.UnRegisterAllAsync();
-            });
+            //lifetime.ApplicationStopping.Register(async () =>
+            //{
+            //    await _registry.DisposeAsync();
+            //});
         }
 
         private static string GetIp()
         {
-            var localIp = BinzUtil.GetLocalIp()
-                                  .Where(e => !e.StartsWith("172") && !e.StartsWith("169"))
-                                  .FirstOrDefault();
+            var localIp = BinzUtil.GetLocalIp()[0];
             if (localIp == null)
             {
                 throw new Exception("Binz cannot get ip address!");
             }
             return localIp;
-        }
+        } 
 
     }
 }

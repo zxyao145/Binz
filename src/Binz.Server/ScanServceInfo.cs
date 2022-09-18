@@ -13,7 +13,5 @@ namespace Binz.Server
             ServiceName = serviceName;
         }
         public string ServiceName { get; set; }
-
-
     }
 }

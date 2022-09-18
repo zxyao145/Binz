@@ -7,13 +7,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Binz.Server
 {
-    public class BinzServerApp
+    public class BinzServerHost
     {
         public static async Task
             RunAsync<TRegistry>(string[] args,
                                 Type scanAssembly,
                                 Action<IServiceCollection, IConfiguration>? configureServices = null,
-                                Action<WebApplication?, IWebHostEnvironment>? configure = null)
+                                Action<WebApplication, IWebHostEnvironment>? configure = null)
              where TRegistry : class, IRegistry
         {
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);

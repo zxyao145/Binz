@@ -3,21 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Binz.Core
 {
-    public class RegisterInfo : ServiceInfo
+    /// <summary>
+    /// Registration information on ectd or consul
+    /// </summary>
+    public class RegistryInfo : ServiceInfo
     {
+        // key
         public string? ServiceId { get; set; }
 
+        /// <summary>
+        /// format: service/{proto namespace}.ServiceName
+        /// example: service/Proto.GreeterService.Greater
+        /// </summary>
         public string ServiceName { get; set; } = BinzConstants.DefaultServiceName;
 
-        public string EnvName { get; set; } = BinzConstants.DefaultEnvName;
-
-        public int Weight { get; set; } = BinzConstants.DefaultWeight;
-
-        public int Level { get; set; } = BinzConstants.DefaultLevel;
-
         public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
+
+        public override string ToString()
+        {
+            return $"ServiceName={ServiceName}, EnvName={EnvName}, Tags={string.Join(",", Tags)}";
+        }
     }
 }

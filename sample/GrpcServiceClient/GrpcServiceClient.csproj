@@ -8,13 +8,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Google.Protobuf" Version="3.20.0" />
-		<PackageReference Include="Grpc.Net.Client" Version="2.44.0" />
-		<PackageReference Include="Grpc.Tools" Version="2.45.0">
+		<PackageReference Include="Google.Protobuf" Version="3.21.6" />
+		<PackageReference Include="Grpc.Net.Client" Version="2.48.0" />
+		<PackageReference Include="Grpc.Tools" Version="2.48.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Consul" Version="1.6.10.4" />
+		<PackageReference Include="Consul" Version="1.6.10.7" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
@@ -39,6 +39,7 @@
 	
 	<ItemGroup>
 	  <ProjectReference Include="..\..\src\Binz.Client\Binz.Client.csproj" />
-	  <ProjectReference Include="..\..\src\Binz.Consul\Binz.Consul.csproj" />
+	  <ProjectReference Include="..\..\src\Binz.Registry.Consul\Binz.Registry.Consul.csproj" />
+	  <ProjectReference Include="..\..\src\Binz.Registry.Etcd\Binz.Registry.Etcd.csproj" />
 	</ItemGroup>
 </Project>

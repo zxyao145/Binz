@@ -24,7 +24,5 @@ namespace Binz.Server
         {
             ServiceName = serviceName;
         }
-
-
     }
 }

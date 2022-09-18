@@ -11,7 +11,7 @@ using System.Text.Json;
 
 namespace Binz.Client
 {
-    public class BinzClient : IDisposable
+    public class BinzClient : IAsyncDisposable
     {
         private readonly ILogger<BinzClient> _logger;
         private readonly IRegistry _registry;
@@ -32,7 +32,6 @@ namespace Binz.Client
         public async Task<T?> CreateGrpcClient<T>(bool warmUp = true, int connectTimeoutSecond = 5)
         {
             var channel = await CreateGrpcChannelAsync<T>(warmUp, connectTimeoutSecond);
-
             var client = (T?) Activator.CreateInstance(typeof(T), channel);
             return client;
         }
@@ -62,7 +61,7 @@ namespace Binz.Client
         private async Task<GrpcChannel> CreateGrpcChannelInternalAsync<T>(int connectTimeoutSecond = 5)
         {
             var serviceName = BinzUtil.GetClientServiceName<T>();
-            var registerService = new RegisterInfo
+            var registerService = new RegistryInfo
             {
                 ServiceName = serviceName,
             };
@@ -118,7 +117,7 @@ namespace Binz.Client
         /// <returns></returns>
         private Task WatchAsync(string serviceName)
         {
-            var registerService = new RegisterInfo
+            var registerService = new RegistryInfo
             {
                 ServiceName = serviceName,
             };
@@ -146,10 +145,10 @@ namespace Binz.Client
         }
 
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            _registry?.Dispose();
-                foreach (var item in _grpcChannelDict.Values)
+            await (_registry?.DisposeAsync() ?? ValueTask.CompletedTask);
+            foreach (var item in _grpcChannelDict.Values)
             {
                 item?.Dispose();
             }

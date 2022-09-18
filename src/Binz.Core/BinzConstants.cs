@@ -16,8 +16,8 @@ namespace Binz.Core
 
         public const string DefaultEnvName = "Development";
 
-        public const int DefaultLevel = 100;
+        //public const int DefaultLevel = 100;
 
-        public const int DefaultWeight = 1;
+        //public const int DefaultWeight = 1;
     }
 }
