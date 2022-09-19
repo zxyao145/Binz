@@ -1,0 +1,36 @@
+name: .NET
+
+on:
+  push:
+    tags:
+      - '*'
+  
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+      
+    - name: Package Binz.Core
+      run: dotnet pack src/Binz.Core/Binz.Core.csproj --configuration Release --output "./packages/"
+    - name: Publish Binz.Core
+      run: dotnet nuget push ./packages/*.nupkg --api-key ${{secrets.PUBLISHKEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+      
+    - name: Package others
+      run: dotnet pack src/Binz.Server/Binz.Server.csproj --configuration Release --output "./packages/" && dotnet pack src/Binz.Client/Binz.Client.csproj --configuration Release --output "./packages/" && dotnet pack src/Binz.Registry.Consul/Binz.Registry.Consul.csproj --configuration Release --output "./packages/" && dotnet pack src/Binz.Registry.Etcd/Binz.Registry.Etcd.csproj --configuration Release --output "./packages/"
+    - name: Publish others
+      run: dotnet nuget push ./packages/*.nupkg --api-key ${{secrets.PUBLISHKEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+      
