@@ -5,12 +5,13 @@
 		<ProductVersion>0.1.0.0</ProductVersion>
 		<FileVersion>0.1.0.0</FileVersion>
 		<Version>0.1.0</Version>
+		<PackageTags>Binz;RPC;gRPC;</PackageTags>
 		<Copyright>zxyao</Copyright>
 		<Authors>zxyao</Authors>
 		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/zxyao145/Binz</RepositoryUrl>
 
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
-
 </Project>

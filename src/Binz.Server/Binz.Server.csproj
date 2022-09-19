@@ -1,9 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="..\assembly.proj" />
 
 	<PropertyGroup>
-		<PackageId>JaiZi.Server</PackageId>
+		<PackageId>Binz.Server</PackageId>
+		<Description>
+			Binz gRPC fast development framework server SDK.
+		</Description>
 	</PropertyGroup>
 
 
@@ -14,8 +16,17 @@
 		<PackageReference Include="Grpc.HealthCheck" Version="2.48.0" />
 	</ItemGroup>
 
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Binz.Core\Binz.Core.csproj" />
-	</ItemGroup>
+	<Choose>
+		<When Condition=" '$(Configuration)'=='Debug' ">
+			<ItemGroup>
+				<ProjectReference Include="..\Binz.Core\Binz.Core.csproj" />
+			</ItemGroup>
+		</When>
+		<When Condition=" '$(Configuration)'=='Release' ">
+			<ItemGroup>
+				<PackageReference Include="Binz.Core" Version="$(Version)" />
+			</ItemGroup>
+		</When>
+	</Choose>
+	
 </Project>

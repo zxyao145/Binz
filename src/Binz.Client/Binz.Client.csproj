@@ -3,12 +3,11 @@
 
 	<PropertyGroup>
 		<PackageId>Binz.Client</PackageId>
+		<Description>
+			Binz gRPC fast development framework client SDK.
+		</Description>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Binz.Core\Binz.Core.csproj" />
-	</ItemGroup>
-	
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
 		<PackageReference Include="Grpc.Net.Client" Version="2.48.0" />
@@ -17,4 +16,18 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
 	</ItemGroup>
+
+	<Choose>
+		<When Condition=" '$(Configuration)'=='Debug' ">
+			<ItemGroup>
+				<ProjectReference Include="..\Binz.Core\Binz.Core.csproj" />
+			</ItemGroup>
+		</When>
+		<When Condition=" '$(Configuration)'=='Release' ">
+			<ItemGroup>
+				<PackageReference Include="Binz.Core" Version="$(Version)" />
+			</ItemGroup>
+		</When>
+	</Choose>
+	
 </Project>

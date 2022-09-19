@@ -1,9 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+	<Import Project="..\assembly.proj" />
+	
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
+		<PackageId>Binz.Registry.Consul</PackageId>
+		<Description>
+			Binz gRPC fast development framework Registry of Consul SDK.
+		</Description>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -13,8 +15,17 @@
 		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Binz.Core\Binz.Core.csproj" />
-	</ItemGroup>
-
+	
+	<Choose>
+		<When Condition=" '$(Configuration)'=='Debug' ">
+			<ItemGroup>
+				<ProjectReference Include="..\Binz.Core\Binz.Core.csproj" />
+			</ItemGroup>
+		</When>
+		<When Condition=" '$(Configuration)'=='Release' ">
+			<ItemGroup>
+				<PackageReference Include="Binz.Core" Version="$(Version)" />
+			</ItemGroup>
+		</When>
+	</Choose>
 </Project>

@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{601AFBC3-8D87-4E34-8AB8-4CF8E05257E6}"
 	ProjectSection(SolutionItems) = preProject
 		src\assembly.proj = src\assembly.proj
+		src\pack.cmd = src\pack.cmd
 		README.md = README.md
 	EndProjectSection
 EndProject
