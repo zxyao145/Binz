@@ -2,6 +2,14 @@
 
 The gRPC fast development framework with a registry is based on ASPNET Core. And the registry supports the use of `etcd` and `consul`.
 
+| Package | Version |
+| ---- | ---- |
+| Binz.Core | [![Nuget](https://img.shields.io/nuget/v/Binz.Core)](https://www.nuget.org/packages/Binz.Core) |
+| Binz.Server | [![Nuget](https://img.shields.io/nuget/v/Binz.Server)](https://www.nuget.org/packages/Binz.Server) |
+| Binz.Client | [![Nuget](https://img.shields.io/nuget/v/Binz.Core)](https://www.nuget.org/packages/Binz.Client) |
+| Binz.Registry.Etcd | [![Nuget](https://img.shields.io/nuget/v/Binz.Registry.Etcd)](https://www.nuget.org/packages/Binz.Registry.Etcd) |
+| Binz.Registry.Consul | [![Nuget](https://img.shields.io/nuget/v/Binz.Core)](https://www.nuget.org/packages/Binz.Registry.Consul) |
+
 # Usage
 
 ## Server
