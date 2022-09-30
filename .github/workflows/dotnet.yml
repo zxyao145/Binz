@@ -29,6 +29,11 @@ jobs:
     - name: Publish Binz.Core
       run: dotnet nuget push ./.packages/*.nupkg --api-key ${{secrets.PUBLISHKEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
       
+    - name: wait Binz.Core Index
+      uses: jakejarvis/wait-action@v0.1.1
+      with:
+        time: '10s'
+        
     - name: Package others
       run: bash .github/pack.sh
     - name: Publish others
