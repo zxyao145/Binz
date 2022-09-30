@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,15 +24,30 @@ namespace Binz.Server
             _logger = logger;
         }
 
+        /// <summary>
+        /// 获取所有 Assembly 内所有的 binz 服务名
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private static List<string> ScanGrpcService()
+        {
+            var binzSvcs = new List<string>();
+            var assemblys = ReflectionHelper.GetAllReferencedAssemblies();
+            foreach (var asm in assemblys)
+            {
+                binzSvcs.AddRange(ScanGrpcService(asm));
+            }
+
+            return binzSvcs;
+        }
 
         /// <summary>
         /// 获取 Assembly 内所有的 binz 服务名
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        private static List<string> ScanGrpcService(Type type)
+        private static List<string> ScanGrpcService(Assembly asm)
         {
-            var asm = type.Assembly;
             if (asm == null)
             {
                 return new List<string>();
@@ -60,8 +76,10 @@ namespace Binz.Server
             return binzSvcs;
         }
 
-        public async Task InitAsync(IHostApplicationLifetime lifetime,
-            params Type[] scanAssemblys)
+
+        public async Task InitAsync(
+            IHostApplicationLifetime lifetime,
+            params Type[] scanTypes)
         {
             int port = _configuration
                             .GetSection("Binz:Server:Port")
@@ -74,17 +92,24 @@ namespace Binz.Server
 
             var env = BinzUtil.GetEnvName();
             var binzSvcNames = new List<string>();
-            HashSet<string> names = new HashSet<string>();
-            foreach (var scanAssembly in scanAssemblys)
+            if (scanTypes != null && scanTypes.Length > 0)
             {
-                var key = scanAssembly.FullName;
-                if (!string.IsNullOrWhiteSpace(key) && !names.Contains(key))
+                HashSet<string> names = new HashSet<string>();
+                foreach (var scanType in scanTypes)
                 {
-                    names.Add(key);
-                    binzSvcNames.AddRange(
-                        ScanGrpcService(scanAssembly)
-                        );
+                    var key = scanType.FullName;
+                    if (!string.IsNullOrWhiteSpace(key) && !names.Contains(key))
+                    {
+                        names.Add(key);
+                        binzSvcNames.AddRange(
+                            ScanGrpcService(scanType.Assembly)
+                            );
+                    }
                 }
+            }
+            else
+            {
+                binzSvcNames = ScanGrpcService();
             }
 
             foreach (var svcName in binzSvcNames)

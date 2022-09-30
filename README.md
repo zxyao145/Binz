@@ -28,13 +28,50 @@ public class GreeterService : Greeter.GreeterBase
 }
 ```
 
+### Add Config
+
+Edit `appsettings.json`, and add `Binz` config.
+
+**For Server:**
+
+```json
+{
+  "Binz": {
+    "Server": {
+      "Port": 9527 // Kestrel port 
+    },
+    "RegistryConfig": {
+      // consul
+      // "Address": "http://127.0.0.1:18401/",
+      // etcd
+      "Address": "http://etcd-srv:2379", // registration center address
+      "HealthCheckIntervalSec": 5 // health check interval second
+    }
+  }
+}
+```
+
+**For Client:**
+
+```json
+"Binz": {
+    "RegistryConfig": {
+      // consul
+      // "Address": "http://127.0.0.1:18401/",
+      // etcd 
+      "Address": "http://etcd-srv:2379", // registration center address
+      "HealthCheckIntervalSec": 5 // health check interval second
+    }
+  }
+```
+
 ### Init the host
 
 #### Mode 1: Using BinzServerHost
 
 ```c#
 await BinzServerHost.RunAsync<EtcdRegistryWithLease>(args,
-    typeof(GreeterService), // assembly of the service to be registered
+    typeof(GreeterService), // assembly of the service to be registered, If no value is passed, all assemblies will be scanned
     configureServices: builder =>
     {
         builder.Services.AddScoped<HelloService>();
@@ -59,8 +96,10 @@ builder.Services.AddGrpc()
 
 var app = builder.Build();
 
-// the assemblys of the gRPC service to be registered
-+ await app.RegisterBinzServer(typeof(GreeterService), typeof(AnotherAssemblyService)); 
+// the assemblys of the gRPC service to be registered which is in typeof(GreeterService).Assembly
+// await app.RegisterBinzServer(typeof(GreeterService)); 
+// all assemblies will be scanned to find [BinzService] attribute
++ await app.RegisterBinzServer(); 
 
 await app.RunAsync();
 ```

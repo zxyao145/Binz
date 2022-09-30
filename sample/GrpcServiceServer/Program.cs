@@ -32,7 +32,6 @@ using GrpcServiceServer.Services;
 //);
 
 await BinzServerHost.RunAsync<EtcdRegistryWithLease>(args,
-    typeof(GreeterService),
     configureServices: builder =>
     {
         builder.Services.AddScoped<HelloService>();

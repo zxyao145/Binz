@@ -11,7 +11,7 @@ namespace Binz.Server
     {
         public static async Task
             RunAsync<TRegistry>(string[] args,
-                                Type scanAssembly,
+                                Type? scanAssembly = null,
                                 Action<IServiceCollection, IConfiguration>? configureServices = null,
                                 Action<WebApplication, IWebHostEnvironment>? configure = null)
              where TRegistry : class, IRegistry
@@ -26,7 +26,14 @@ namespace Binz.Server
             var app = builder.Build();
             configure?.Invoke(app, app.Environment);
 
-            await app.RegisterBinzServer(scanAssembly);
+            if(scanAssembly != null)
+            {
+                await app.RegisterBinzServer(scanAssembly);
+            }
+            else
+            {
+                await app.RegisterBinzServer();
+            }
             await app.RunAsync();
         }
 
@@ -34,7 +41,7 @@ namespace Binz.Server
 
         public static async Task
            RunAsync<TRegistry>(string[] args,
-                               Type scanAssembly,
+                               Type? scanAssembly = null,
                                Action<WebApplicationBuilder>? configureServices = null,
                                Action<WebApplication>? configure = null)
             where TRegistry : class, IRegistry
@@ -49,8 +56,14 @@ namespace Binz.Server
 
             var app = builder.Build();
             configure?.Invoke(app);
-
-            await app.RegisterBinzServer(scanAssembly);
+            if(scanAssembly !=null)
+            {
+                await app.RegisterBinzServer(scanAssembly);
+            }
+            else
+            {
+                await app.RegisterBinzServer();
+            }
             await app.RunAsync();
         }
     }
