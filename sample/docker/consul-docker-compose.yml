@@ -1,0 +1,135 @@
+version: '3'
+services:
+    server1:
+        image: consul
+        restart: always
+        container_name: server1
+        ports:
+            - 18101:8300
+            - 18201:8301
+            - 18301:8302
+            - 18401:8500
+            - 18501:8600
+        expose:
+            - 8300
+            - 8301
+            - 8302
+            - 8500
+            - 8600
+        command: agent -server -bootstrap-expect=3 -node=server1 -bind=0.0.0.0 -client=0.0.0.0 -ui -datacenter dc1 
+        environment:
+            # 不启用acl
+            CONSUL_LOCAL_CONFIG: '{"skip_leave_on_interrupt": true}'
+            # 启用acl，下面的token_value是token值，可自行设置
+            # CONSUL_LOCAL_CONFIG: '{"skip_leave_on_interrupt": true,"acl": {"enabled": true,"default_policy": "deny","down_policy": "extend-cache","tokens": {"master": "token_value"}}}'        
+    server2:
+        image: consul
+        restart: always
+        container_name: server2
+        ports:
+            - 18102:8300
+            - 18202:8301
+            - 18302:8302
+            - 18402:8500
+            - 18502:8600
+        expose:
+            - 8300
+            - 8301
+            - 8302
+            - 8500
+            - 8600
+        depends_on:
+            - server1
+        command: agent -server -bootstrap-expect=3 -node=server2 -bind=0.0.0.0 -client=0.0.0.0 -ui -datacenter dc1 -join server1
+        environment:
+            # 不启用acl
+            CONSUL_LOCAL_CONFIG: '{"skip_leave_on_interrupt": true}'
+            # 启用acl，下面的token_value是token值，可自行设置
+            # CONSUL_LOCAL_CONFIG: '{"skip_leave_on_interrupt": true,"acl": {"enabled": true,"default_policy": "deny","down_policy": "extend-cache","tokens": {"master": "token_value"}}}'    
+    server3:
+        image: consul
+        restart: always
+        container_name: server3
+        ports:
+            - 18103:8300
+            - 18203:8301
+            - 18303:8302
+            - 18403:8500
+            - 18503:8600
+        expose:
+            - 8300
+            - 8301
+            - 8302
+            - 8500
+            - 8600
+        depends_on:
+            - server1
+        command: agent -server -bootstrap-expect=3 -node=server3 -bind=0.0.0.0 -client=0.0.0.0 -ui -datacenter dc1 -join server1
+        environment:
+            # 不启用acl
+            CONSUL_LOCAL_CONFIG: '{"skip_leave_on_interrupt": true}'
+            # 启用acl，下面的token_value是token值，可自行设置
+            # CONSUL_LOCAL_CONFIG: '{"skip_leave_on_interrupt": true,"acl": {"enabled": true,"default_policy": "deny","down_policy": "extend-cache","tokens": {"master": "token_value"}}}' 
+    client1:
+        image: consul
+        restart: always
+        container_name: client1
+        ports:
+            - 18104:8300
+            - 18204:8301
+            - 18304:8302
+            - 18404:8500
+            - 18504:8600
+        expose:
+            - 8300
+            - 8301
+            - 8302
+            - 8500
+            - 8600
+        depends_on:
+            - server1
+        command: agent -node=client1 -bind=0.0.0.0 -client=0.0.0.0 -retry-join=server1
+        environment:
+            CONSUL_LOCAL_CONFIG: '{"leave_on_terminate": true}'
+    client2:
+        image: consul
+        restart: always
+        container_name: client2
+        ports:
+            - 18105:8300
+            - 18205:8301
+            - 18305:8302
+            - 18405:8500
+            - 18505:8600
+        expose:
+            - 8300
+            - 8301
+            - 8302
+            - 8500
+            - 8600
+        depends_on:
+            - server2
+        command: agent -node=client2 -bind=0.0.0.0 -client=0.0.0.0 -retry-join=server2
+        environment:
+            CONSUL_LOCAL_CONFIG: '{"leave_on_terminate": true}'
+    client3:
+        image: consul
+        restart: always
+        container_name: client3
+        ports:
+            - 18106:8300
+            - 18206:8301
+            - 18306:8302
+            - 18406:8500
+            - 18506:8600
+        expose:
+            - 8300
+            - 8301
+            - 8302
+            - 8500
+            - 8600
+        depends_on:
+            - server3
+        command: agent -node=client3 -bind=0.0.0.0 -client=0.0.0.0 -retry-join=server3
+        environment:
+            CONSUL_LOCAL_CONFIG: '{"leave_on_terminate": true}'      

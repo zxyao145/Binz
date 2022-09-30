@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Binz.Core;
 using Binz.Registry.Consul;
 using Binz.Registry.Etcd;
+using DnsClient.Internal;
 
 var builder = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
@@ -26,11 +27,12 @@ var binzClient = serviceProvider.GetRequiredService<BinzClient>();
 //var channel = await binzClient.CreateGrpcChannelAsync<Greeter.GreeterClient>();
 //var client = new Greeter.GreeterClient(channel);
 
+var logger = serviceProvider.GetRequiredService<ILogger>();
 
 var client = await binzClient.CreateGrpcClient<Greeter.GreeterClient>();
 var res = client?.SayHello(new HelloRequest { Name = "Greeter" });
-Console.WriteLine(res?.Message);
+logger.LogInformation(res?.Message);
 
 var client2 = await binzClient.CreateGrpcClient<Greeter2.Greeter2Client>();
 var res2 = client2?.SayHello(new HelloRequest { Name = "Greeter2 " });
-Console.WriteLine(res2?.Message);
+logger.LogInformation(res2?.Message);

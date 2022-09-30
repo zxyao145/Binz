@@ -1,0 +1,53 @@
+version: '3'
+services:
+    server1:
+        image: quay.io/coreos/etcd:v3.5.5
+        restart: always
+        container_name: etcd-srv
+        expose:
+            - 2380 
+        ports:
+            - 2380:2380
+            - 2379:2379
+        volumes:
+          - "./etcd-data:/opt/bitnami/etcd/data"
+        environment:
+          - "ETCD_ADVERTISE_CLIENT_URLS=http://0.0.0.0:2379"
+          - "ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
+          - "ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380"
+          - "ETCD_INITIAL_ADVERTISE_PEER_URLS=http://0.0.0.0:2380"
+          - "ALLOW_NONE_AUTHENTICATION=yes"
+          - "ETCD_INITIAL_CLUSTER=node1=http://0.0.0.0:2380"
+          - "ETCD_NAME=node1"
+          - "ETCD_DATA_DIR=/opt/bitnami/etcd/data"
+        networks:
+           - etcdnet
+
+    server2:
+        image: grpcserviceserver:dev
+        restart: always
+        container_name: BinzServer
+        expose:
+            - 9527
+        depends_on:
+           - server1  
+        networks:
+           - etcdnet
+           
+    server3:
+        image: binzclientinwebapi:dev
+        # restart: always
+        container_name: BinzClient
+        ports:
+            - 8080:80
+        expose:
+            - 80
+        depends_on:
+            - server1 
+            - server2            
+        networks:
+           - etcdnet           
+    
+networks:
+  etcdnet:
+    name: etcdnet

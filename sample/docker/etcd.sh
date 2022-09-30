@@ -1,0 +1,1 @@
+docker-compose -f etcd-docker-compose.yml up
